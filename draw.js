@@ -9,6 +9,9 @@ let frames = null;
 let start_time = null;
 let replay_cursor = 0;
 
+let robot_width = 0;
+let robot_height = 0;
+
 async function init() {
     const params = new URLSearchParams(window.location.search);
     const replayURL = params.get('replay');
@@ -17,6 +20,8 @@ async function init() {
     }
     const simulation = await loadReplay(replayURL);
     frames = simulation.frames;
+    robot_width = simulation.robot_size[0];
+    robot_height = simulation.robot_size[1];
     start_time = Date.now();
     window.requestAnimationFrame(draw);
 }
@@ -66,10 +71,11 @@ function drawRobot(ctx, posX, posY, angle) {
     ctx.rotate(-angle);
 
     ctx.fillStyle = 'red';
-    ctx.fillRect(-100, -100, 200, 200);
+    ctx.fillRect(-robot_width/2, -robot_height/2, robot_width, robot_height);
 
-    ctx.fillStyle = 'black';
-    ctx.fillRect(100 - 25, -25, 50, 50);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(robot_width/2 - 60, -25-50, 50, 50);
+    ctx.fillRect(robot_width/2 - 60, -25+50, 50, 50);
 
     ctx.restore();
 }
