@@ -73,6 +73,13 @@ function drawRobot(ctx, posX, posY, angle) {
     ctx.fillStyle = 'red';
     ctx.fillRect(-robot_width/2, -robot_height/2, robot_width, robot_height);
 
+
+    ctx.beginPath();
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = "5";
+    ctx.rect(-robot_width/2, -robot_height/2, robot_width, robot_height);
+    ctx.stroke();
+
     ctx.fillStyle = 'white';
     ctx.fillRect(robot_width/2 - 60, -25-50, 50, 50);
     ctx.fillRect(robot_width/2 - 60, -25+50, 50, 50);
