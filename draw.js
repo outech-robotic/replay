@@ -20,8 +20,10 @@ async function init() {
     }
     const simulation = await loadReplay(replayURL);
     frames = simulation.frames;
-    robot_width = simulation.robot_size[0];
-    robot_height = simulation.robot_size[1];
+    const initial_configuration = simulation.initial_configuration;
+    const size_robot_a = initial_configuration.sizes['ROBOT_A'];
+    robot_width = size_robot_a[0];
+    robot_height = size_robot_a[1];
     start_time = Date.now();
     window.requestAnimationFrame(draw);
 }
@@ -33,6 +35,7 @@ function draw() {
     while (replay_cursor + 1 < frames.length && t > frames[replay_cursor + 1].time)
         replay_cursor += 1;
 
+
     const current_frame = frames[replay_cursor];
 
 
@@ -41,18 +44,15 @@ function draw() {
         return;
     }
     const ctx = canvas.getContext('2d');
-    const time = Date.now();
 
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     ctx.save();
 
     drawBackground(ctx);
-    for (const position of current_frame.positions) {
-        if (position.type !== 'robot')
-            continue;
-        drawRobot(ctx, position.x, position.y, position.angle);
-    }
+
+    const robot = current_frame.robots['ROBOT_A'];
+    drawRobot(ctx, robot.position[0], robot.position[1], robot.angle);
 
     ctx.restore();
 
@@ -71,18 +71,18 @@ function drawRobot(ctx, posX, posY, angle) {
     ctx.rotate(-angle);
 
     ctx.fillStyle = 'red';
-    ctx.fillRect(-robot_width/2, -robot_height/2, robot_width, robot_height);
+    ctx.fillRect(-robot_width / 2, -robot_height / 2, robot_width, robot_height);
 
 
     ctx.beginPath();
     ctx.strokeStyle = "black";
     ctx.lineWidth = "5";
-    ctx.rect(-robot_width/2, -robot_height/2, robot_width, robot_height);
+    ctx.rect(-robot_width / 2, -robot_height / 2, robot_width, robot_height);
     ctx.stroke();
 
     ctx.fillStyle = 'white';
-    ctx.fillRect(robot_width/2 - 60, -25-50, 50, 50);
-    ctx.fillRect(robot_width/2 - 60, -25+50, 50, 50);
+    ctx.fillRect(robot_width / 2 - 60, -25 - 50, 50, 50);
+    ctx.fillRect(robot_width / 2 - 60, -25 + 50, 50, 50);
 
     ctx.restore();
 }
