@@ -59,9 +59,14 @@ function draw() {
     window.requestAnimationFrame(draw);
 }
 
+var plateau = new Image();
+plateau.src = "plateau.svg";
+
 function drawBackground(ctx) {
-    ctx.fillStyle = 'grey';
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    //plateau.onload = function() {
+      ctx.drawImage(plateau, 0, 0, WIDTH, HEIGHT);
+    //}
+
 }
 
 function drawRobot(ctx, posX, posY, angle) {
@@ -70,12 +75,12 @@ function drawRobot(ctx, posX, posY, angle) {
     ctx.translate(posX, HEIGHT - posY);
     ctx.rotate(-angle);
 
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = '#300000';
     ctx.fillRect(-robot_width / 2, -robot_height / 2, robot_width, robot_height);
 
 
     ctx.beginPath();
-    ctx.strokeStyle = "black";
+    ctx.strokeStyle = "white";
     ctx.lineWidth = "5";
     ctx.rect(-robot_width / 2, -robot_height / 2, robot_width, robot_height);
     ctx.stroke();
