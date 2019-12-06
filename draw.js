@@ -52,7 +52,7 @@ function draw() {
     drawBackground(ctx);
 
     const robot = current_frame.robots['ROBOT_A'];
-    drawRobot(ctx, robot.position[0], robot.position[1], robot.angle);
+    drawRobot(ctx, robot.position.x, robot.position.y, robot.angle);
 
     ctx.restore();
 
