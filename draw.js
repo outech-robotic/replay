@@ -5,12 +5,11 @@ const HEIGHT = 2000;
 
 import {loadReplay} from "./util.js";
 
-let frames = null;
-let start_time = null;
-let replay_cursor = 0;
 
 let robot_width = 0;
 let robot_height = 0;
+
+let getFrame = null;
 
 async function init() {
     const params = new URLSearchParams(window.location.search);
@@ -18,25 +17,53 @@ async function init() {
     if (!replayURL) {
         return
     }
-    const simulation = await loadReplay(replayURL);
-    frames = simulation.frames;
-    const initial_configuration = simulation.initial_configuration;
-    const size_robot_a = initial_configuration.sizes['ROBOT_A'];
-    robot_width = size_robot_a[0];
-    robot_height = size_robot_a[1];
-    start_time = Date.now();
+    if (replayURL.startsWith('ws://')) {
+        let socket = new WebSocket(replayURL);
+        let currentFrame = {
+            'robots': {
+                'ROBOT_A': {
+                    "position": {},
+                    "angle": 0,
+                }
+            }
+        };
+        socket.onmessage = function (event) {
+            currentFrame = {'robots': {'ROBOT_A': JSON.parse(event.data)}};
+            console.log(currentFrame);
+        };
+        robot_width = 240;
+        robot_height = 380;
+        getFrame = function () {
+            return currentFrame;
+        }
+    } else if (replayURL.startsWith("http")) {
+        const simulation = await loadReplay(replayURL);
+
+        const initial_configuration = simulation.initial_configuration;
+        const size_robot_a = initial_configuration.sizes['ROBOT_A'];
+        robot_width = size_robot_a[0];
+        robot_height = size_robot_a[1];
+
+        let frames = simulation.frames;
+        let start_time = Date.now();
+        let replay_cursor = 0;
+        getFrame = function () {
+            const t = Date.now() - start_time;
+            while (replay_cursor + 1 < frames.length && t > frames[replay_cursor + 1].time)
+                replay_cursor += 1;
+            return frames[replay_cursor];
+        };
+    }
+    else {
+        return
+    }
     window.requestAnimationFrame(draw);
 }
 
-window.addEventListener('load', init)
+window.addEventListener('load', init);
 
 function draw() {
-    const t = Date.now() - start_time;
-    while (replay_cursor + 1 < frames.length && t > frames[replay_cursor + 1].time)
-        replay_cursor += 1;
-
-
-    const current_frame = frames[replay_cursor];
+    const current_frame = getFrame();
 
 
     const canvas = document.getElementById('robotField');
@@ -64,7 +91,7 @@ plateau.src = "plateau.svg";
 
 function drawBackground(ctx) {
     //plateau.onload = function() {
-      ctx.drawImage(plateau, 0, 0, WIDTH, HEIGHT);
+    ctx.drawImage(plateau, 0, 0, WIDTH, HEIGHT);
     //}
 
 }
