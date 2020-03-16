@@ -79,7 +79,15 @@ function draw() {
     drawBackground(ctx);
 
     const robot = current_frame.robots['ROBOT_A'];
-    drawRobot(ctx, robot.position.x, robot.position.y, robot.angle);
+
+    var x_robot = robot.position.x;
+    var y_robot = robot.position.y;
+    drawRobot(ctx, x_robot, y_robot, robot.angle);
+
+    var list_obstacles = robot['position_obstacles'];
+    for(let i = 0; i < list_obstacles.length; i++) {
+        drawObstacle(ctx, list_obstacles[i][0], list_obstacles[i][1], x_robot, y_robot, robot.angle);
+    }
 
     ctx.restore();
 
@@ -115,6 +123,23 @@ function drawRobot(ctx, posX, posY, angle) {
     ctx.fillStyle = 'white';
     ctx.fillRect(robot_width / 2 - 60, -25 - 50, 50, 50);
     ctx.fillRect(robot_width / 2 - 60, -25 + 50, 50, 50);
+
+    ctx.restore();
+}
+
+function drawObstacle(ctx, posX, posY, robot_x, robot_y, angle) {
+    ctx.save();
+
+    ctx.translate(robot_x, HEIGHT - robot_y);
+    ctx.rotate(-angle)
+
+    ctx.beginPath();
+    ctx.arc(posX, posY, 5, 0, 2*Math.PI, true);
+    ctx.fillStyle = 'red';
+    ctx.fill();
+
+    ctx.strokeStyle = '#300000';
+    ctx.stroke();
 
     ctx.restore();
 }
