@@ -29,7 +29,6 @@ async function init() {
         };
         socket.onmessage = function (event) {
             currentFrame = {'robots': {'ROBOT_A': JSON.parse(event.data)}};
-            console.log(currentFrame);
         };
         robot_width = 240;
         robot_height = 380;
@@ -85,8 +84,10 @@ function draw() {
     drawRobot(ctx, x_robot, y_robot, robot.angle);
 
     var list_obstacles = robot['position_obstacles'];
-    for(let i = 0; i < list_obstacles.length; i++) {
-        drawObstacle(ctx, list_obstacles[i][0], list_obstacles[i][1], x_robot, y_robot, robot.angle);
+
+    for (var obstacle of list_obstacles)  {
+        drawObstacle(ctx, obstacle.x, obstacle.y);
+      console.log(obstacle.x, obstacle.y)
     }
 
     ctx.restore();
@@ -127,14 +128,11 @@ function drawRobot(ctx, posX, posY, angle) {
     ctx.restore();
 }
 
-function drawObstacle(ctx, posX, posY, robot_x, robot_y, angle) {
+function drawObstacle(ctx, posX, posY) {
     ctx.save();
 
-    ctx.translate(robot_x, HEIGHT - robot_y);
-    ctx.rotate(-angle)
-
     ctx.beginPath();
-    ctx.arc(posX, posY, 5, 0, 2*Math.PI, true);
+    ctx.arc(posX, HEIGHT - posY, 5, 0, 2*Math.PI, true);
     ctx.fillStyle = 'red';
     ctx.fill();
 
