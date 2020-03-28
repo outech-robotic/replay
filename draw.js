@@ -108,7 +108,7 @@ function drawGrid(ctx, grid=[]) {
     for (var [x,row] of grid.entries()) {
         for (var y = 0; y < row.length; y++) {
             if (row[y] === '1') {
-                ctx.fillRect(x * 10, y * 10,  10, 10);
+                ctx.fillRect(x * 10, HEIGHT-y * 10,  10, 10);
             }
         }
     }
