@@ -79,6 +79,8 @@ function draw() {
 
     const robot = current_frame.robots['ROBOT_A'];
 
+    drawGrid(ctx, robot.obstacle_grid);
+
     var x_robot = robot.position.x;
     var y_robot = robot.position.y;
     drawRobot(ctx, x_robot, y_robot, robot.angle);
@@ -87,7 +89,6 @@ function draw() {
 
     for (var obstacle of list_obstacles)  {
         drawObstacle(ctx, obstacle.x, obstacle.y);
-      console.log(obstacle.x, obstacle.y)
     }
 
     ctx.restore();
@@ -99,10 +100,18 @@ var plateau = new Image();
 plateau.src = "plateau.svg";
 
 function drawBackground(ctx) {
-    //plateau.onload = function() {
     ctx.drawImage(plateau, 0, 0, WIDTH, HEIGHT);
-    //}
+}
 
+function drawGrid(ctx, grid=[]) {
+    ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+    for (var [x,row] of grid.entries()) {
+        for (var y = 0; y < row.length; y++) {
+            if (row[y] === '1') {
+                ctx.fillRect(x * 10, y * 10,  10, 10);
+            }
+        }
+    }
 }
 
 function drawRobot(ctx, posX, posY, angle) {
