@@ -19,41 +19,64 @@ async function init() {
     }
     if (replayURL.startsWith('ws://')) {
         let socket = new WebSocket(replayURL);
-        let currentFrame = {
-            'robots': {
-                'ROBOT_A': {
-                    "position": {},
-                    "angle": 0,
+        let position = {
+            "x": 0,
+            "y": 0,
+        }
+        let angle = 0;
+        socket.onmessage = function (event) {
+            let currentFrame = JSON.parse(event.data);
+            console.log(currentFrame)
+            for(let f of currentFrame) {
+                if (f.key === "position") {
+                    position = f.value;
+                }
+                if (f.key === "angle") {
+                    angle = f.value;
                 }
             }
-        };
-        socket.onmessage = function (event) {
-            currentFrame = {'robots': {'ROBOT_A': JSON.parse(event.data)}};
         };
         robot_width = 240;
         robot_height = 380;
         getFrame = function () {
-            return currentFrame;
+            return {
+                "position": position,
+                "angle": angle,
+            }
         }
     } else if (replayURL.startsWith("http")) {
         const simulation = await loadReplay(replayURL);
 
-        const initial_configuration = simulation.initial_configuration;
-        const size_robot_a = initial_configuration.sizes['ROBOT_A'];
-        robot_width = size_robot_a[0];
-        robot_height = size_robot_a[1];
+        const config = simulation.events.find(e => e.key == 'configuration').value;
+        robot_width = config.robot_length;
+        robot_height = config.robot_width;
 
-        let frames = simulation.frames;
+        let frames = simulation.events;
         let start_time = Date.now();
         let replay_cursor = 0;
+        let position = {
+            "x": 0,
+            "y": 0,
+        }
+        let angle = 0;
         getFrame = function () {
             const t = Date.now() - start_time;
-            while (replay_cursor + 1 < frames.length && t > frames[replay_cursor + 1].time)
+            while (replay_cursor + 1 < frames.length && t > frames[replay_cursor + 1].time * 1000) {
+                let f = frames[replay_cursor];
+                if (f.key === "position") {
+                    position = f.value;
+                }
+                if (f.key === "angle") {
+                    angle = f.value;
+                }
                 replay_cursor += 1;
-            return frames[replay_cursor];
+            }
+            return {
+                "position": position,
+                "angle": angle,
+            }
         };
-    }
-    else {
+    } else {
         return
     }
     window.requestAnimationFrame(draw);
@@ -62,8 +85,7 @@ async function init() {
 window.addEventListener('load', init);
 
 function draw() {
-    const current_frame = getFrame();
-
+    const robot = getFrame();
 
     const canvas = document.getElementById('robotField');
     if (!canvas.getContext) {
@@ -77,18 +99,16 @@ function draw() {
 
     drawBackground(ctx);
 
-    const robot = current_frame.robots['ROBOT_A'];
-
     drawGrid(ctx, robot.obstacle_grid);
 
-    var x_robot = robot.position.x;
-    var y_robot = robot.position.y;
-    drawRobot(ctx, x_robot, y_robot, robot.angle);
+    drawRobot(ctx, robot.position, robot.angle);
 
     var list_obstacles = robot['position_obstacles'];
 
-    for (var obstacle of list_obstacles)  {
-        drawObstacle(ctx, obstacle.x, obstacle.y);
+    if (list_obstacles !== undefined) {
+        for (var obstacle of list_obstacles) {
+            drawObstacle(ctx, obstacle.x, obstacle.y);
+        }
     }
 
     ctx.restore();
@@ -103,18 +123,23 @@ function drawBackground(ctx) {
     ctx.drawImage(plateau, 0, 0, WIDTH, HEIGHT);
 }
 
-function drawGrid(ctx, grid=[]) {
+function drawGrid(ctx, grid = []) {
     ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-    for (var [x,row] of grid.entries()) {
+    for (var [x, row] of grid.entries()) {
         for (var y = 0; y < row.length; y++) {
             if (row[y] === '1') {
-                ctx.fillRect(x * 10, HEIGHT-y * 10,  10, 10);
+                ctx.fillRect(x * 10, HEIGHT - y * 10, 10, 10);
             }
         }
     }
 }
 
-function drawRobot(ctx, posX, posY, angle) {
+function drawRobot(ctx, pos, angle) {
+    if (pos === undefined) {
+        return
+    }
+    const posX = pos.x;
+    const posY = pos.y;
     ctx.save();
 
     ctx.translate(posX, HEIGHT - posY);
@@ -141,7 +166,7 @@ function drawObstacle(ctx, posX, posY) {
     ctx.save();
 
     ctx.beginPath();
-    ctx.arc(posX, HEIGHT - posY, 5, 0, 2*Math.PI, true);
+    ctx.arc(posX, HEIGHT - posY, 5, 0, 2 * Math.PI, true);
     ctx.fillStyle = 'red';
     ctx.fill();
 

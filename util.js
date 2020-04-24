@@ -14,7 +14,7 @@ async function loadJSON(url) {
 
 export async function loadReplay(url) {
     const replay = await loadJSON(url);
-    replay.frames.sort(function (x, y) {
+    replay.events.sort(function (x, y) {
         if (x.time > y.time)
             return 1;
         if (x.time < y.time)
